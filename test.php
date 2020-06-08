@@ -183,7 +183,7 @@ function resizeImage($resourceType, $image_width, $image_height){
 
       $outputImage = $uploadPath."thump_".$resizeFileName.".".$fileExt;
       echo "<img src= '$outputImage'/>";
-      echo '<br>';
+      
         echo "Image Resized Successfully";
         
     }else{
@@ -195,7 +195,20 @@ function resizeImage($resourceType, $image_width, $image_height){
               
 ?>
           
-    
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
           
           </form></div>
     </div>
