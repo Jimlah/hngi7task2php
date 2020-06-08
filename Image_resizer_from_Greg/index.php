@@ -124,7 +124,7 @@ h1 {
 <?php
 if(isset($_POST['form_submit'])){
 $directoryName = 'resized_images';
- 
+
 //Check if the directory already exists.
 if(!is_dir($directoryName)){
     //Directory does not exist, so lets create it.
@@ -134,6 +134,15 @@ if(!is_dir($directoryName)){
 function resizeImage($resourceType, $image_width, $image_height){
  $resizeWidth = $_POST['user_width'];
  $resizeHeight = $_POST['user_height'];
+    if ($resizeWidth <= 10) {
+      echo "Width too small";
+      die();
+    }
+    if ($resizeHeight <= 10) {
+      echo "Height too small";
+      die();
+    }
+
  $imageLayer = imagecreatetruecolor($resizeWidth, $resizeHeight);
      imagecopyresampled($imageLayer,$resourceType,0,0,0,0,$resizeWidth,$resizeHeight,$image_height,$image_width);
     return $imageLayer;
