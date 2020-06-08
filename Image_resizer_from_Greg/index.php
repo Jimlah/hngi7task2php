@@ -175,11 +175,6 @@ function resizeImage($resourceType, $image_width, $image_height){
                 $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
                 imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
                 break;
-             case IMAGETYPE_TIFF:
-                $resourceType = imagecreatefromtiff($fileName);
-                $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
-                imagetiff($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
-                break;
             default:
                 $imageProcess = 0;
                 break;
