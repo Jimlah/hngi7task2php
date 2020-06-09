@@ -1,47 +1,50 @@
 <?php
-class ImageResizer{
+class ImageResizer
+{
 
-    protected function downloadImage($url){
+    protected function downloadImage($url)
+    {
         $directoryName = 'original_images';
- 
+
         //Check if the directory already exists.
-        if(!is_dir($directoryName)){
+        if (!is_dir($directoryName)) {
             //Directory does not exist, so lets create it.
             mkdir($directoryName, 0755);
         }
 
         //get details of image from url
-        $pathinfo = pathinfo($url); 
+        $pathinfo = pathinfo($url);
 
         //get filename and extension
         $filename = time();
         $ext = $pathinfo['extension'];
 
         //new filename
-        $newFilename = $pathinfo["filename"] ."_".$filename ."." .$ext;
+        $newFilename = $pathinfo["filename"] . "_" . $filename . "." . $ext;
 
         //get image from url
         $img_content = file_get_contents($url);
 
         //write downloaded file into output file
-        $new_img = fopen("original_images/".$newFilename, "w");      
-        $scrape = fwrite($new_img, $img_content);    
+        $new_img = fopen("original_images/" . $newFilename, "w");
+        $scrape = fwrite($new_img, $img_content);
 
-        if($scrape == true){
+        if ($scrape == true) {
             return $newFilename;
         }
     }
 
 
-    protected function resizeImage($resourceType, $image_width, $image_height, $resizeWidth, $resizeHeight){
+    protected function resizeImage($resourceType, $image_width, $image_height, $resizeWidth, $resizeHeight)
+    {
         //resize image and return image layer
         $imageLayer = imagecreatetruecolor($resizeWidth, $resizeHeight);
-        imagecopyresampled($imageLayer,$resourceType,0,0,0,0,$resizeWidth,$resizeHeight,$image_height,$image_width);
+        imagecopyresampled($imageLayer, $resourceType, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $image_height, $image_width);
         return $imageLayer;
-
     }
 
-    protected function checkDimensions($width, $height){
+    protected function checkDimensions($width, $height)
+    {
         if ($width <= 10) {
             echo json_encode(
                 array("message" => "Image width is below limit")
@@ -51,12 +54,13 @@ class ImageResizer{
         if ($height <= 10) {
             echo json_encode(
                 array("message" => "Image height is below limit")
-            );     
+            );
             die();
         }
     }
 
-    public function processImage($url, $width, $height){
+    public function processImage($url, $width, $height)
+    {
         //check dimensions given by user to confirm if they satisfy limit
         $this->checkDimensions($width, $height);
 
@@ -65,19 +69,20 @@ class ImageResizer{
 
         //resized images folder creation
         $directoryName = 'resized_images';
- 
+
         //Check if the directory already exists.
-        if(!is_dir($directoryName)){
+        if (!is_dir($directoryName)) {
             //Directory does not exist, so lets create it.
             mkdir($directoryName, 0755);
         }
 
         //get properties of image
-        $sourceProperties = getimagesize("original_images/".$fileName);
+        $sourceProperties = getimagesize("original_images/" . $fileName);
         $resizeFileName = time();
         $uploadPath = "resized_images/";
+        $quality = 50;
 
-        $fileExt = pathinfo("original_images/".$fileName, PATHINFO_EXTENSION);
+        $fileExt = pathinfo("original_images/" . $fileName, PATHINFO_EXTENSION);
 
         //get file extension
         $uploadImageType = $sourceProperties[2];
@@ -86,36 +91,35 @@ class ImageResizer{
 
 
         //resize image according to image format
-        switch ($uploadImageType){
+        switch ($uploadImageType) {
             case IMAGETYPE_JPEG:
-                $resourceType = imagecreatefromjpeg("original_images/".$fileName);
+                $resourceType = imagecreatefromjpeg("original_images/" . $fileName);
                 $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                imagejpeg($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                imagejpeg($imageLayer, $uploadPath . "thump_" . $resizeFileName . "." . $fileExt, $quality);
                 break;
             case IMAGETYPE_GIF:
-                $resourceType = imagecreatefromgif("original_images/".$fileName);
+                $resourceType = imagecreatefromgif("original_images/" . $fileName);
                 $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                imagegif($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                imagegif($imageLayer, $uploadPath . "thump_" . $resizeFileName . "." . $fileExt, $quality);
                 break;
             case IMAGETYPE_PNG:
-                $resourceType = imagecreatefrompng("original_images/".$fileName);
+                $resourceType = imagecreatefrompng("original_images/" . $fileName);
                 $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                imagepng($imageLayer, $uploadPath . "thump_" . $resizeFileName . "." . $fileExt, $quality);
                 break;
             default:
                 $imageProcess = 0;
                 break;
-                
         }
         //save resized file
-        move_uploaded_file(@$file, $uploadPath. $resizeFileName. ".". $fileExt);
+        move_uploaded_file(@$file, $uploadPath . $resizeFileName . "." . $fileExt);
 
         //construct path of resized file to generate url
-        $image_name = "thump_".$resizeFileName.".".$fileExt;
+        $image_name = "thump_" . $resizeFileName . "." . $fileExt;
 
         $relative_path = $uploadPath . $image_name;
 
-        $path = $_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
+        $path = $_SERVER['SERVER_NAME'] . "/src/api/" . $relative_path;
 
         //return JSON response
         echo json_encode(
@@ -125,6 +129,4 @@ class ImageResizer{
             )
         );
     }
-
-
 }
