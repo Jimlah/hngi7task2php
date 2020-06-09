@@ -30,7 +30,7 @@ RUN chown -R nginx.nginx /var/www/html && \
   chown -R nginx.nginx /var/log/nginx
 
 # Switch to use a non-root user from here on
-USER nginx
+USER root
 
 # Add application
 WORKDIR /var/www/html
