@@ -35,7 +35,7 @@ WORKDIR /var/www/html
 COPY src/ /var/www/html/
 RUN rm -rf /var/www/html/resized_images/
 RUN mkdir -p /var/www/html/resized_images
-RUN chown -R nginx.nginx /var/www/html/src/resized_images
+RUN chown -R nginx.nginx /var/www/html/resized_images
 
 
 # Switch to use a non-root user from here on
