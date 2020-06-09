@@ -204,7 +204,10 @@
                   move_uploaded_file(@$file, $uploadPath . $resizeFileName . "." . $fileExt);
                   $imageProcess = 1;
                 } else {
-                  echo "Sorry!!! Your file File too large";
+
+                  echo "<div>
+                  <p class='alert alert-success'></p>
+                </div>";
                 }
                 if ($imageProcess == 1) {
                   $outputImage = $uploadPath . "thump_" . $resizeFileName . "." . $fileExt;
