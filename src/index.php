@@ -206,14 +206,16 @@
                 } else {
 
                   echo "<div>
-                  <p class='alert alert-success'></p>
+                  <p class='alert alert-danger'>Sorry!!! Your file File too large</p>
                 </div>";
                 }
                 if ($imageProcess == 1) {
                   $outputImage = $uploadPath . "thump_" . $resizeFileName . "." . $fileExt;
                   echo "<img src= '$outputImage'/>";
                   echo '<br>';
-                  echo "Image Resized Successfully";
+                  echo "<div>
+                  <p class='alert alert-success'>Image Resized Successfully</p>
+                </div>";
                 } else {
                   echo "Note! Invalid Image";
                 }
