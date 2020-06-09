@@ -33,6 +33,7 @@ RUN chown -R nginx.nginx /var/www/html && \
 # Add application
 WORKDIR /var/www/html
 COPY src/ /var/www/html/
+RUN rm -rf /var/www/html/src/resized_images/
 RUN mkdir -p /var/www/html/src/resized_images
 RUN chown -R nginx.nginx /var/www/html/src/resized_images
 
