@@ -25,19 +25,22 @@ RUN mkdir -p /var/www/html
 
 # Make sure files/folders needed by the processes are accessable when they run under the nobody user
 RUN chown -R nginx.nginx /var/www/html && \
-  chown -R nginx.nginx /var/www/html/src/resized_images && \
   chown -R nginx.nginx /run && \
   chown -R nginx.nginx /var/lib/nginx && \
   chown -R nginx.nginx /var/log/nginx
 
-# Switch to use a non-root user from here on
-USER nginx
 
 # Add application
 WORKDIR /var/www/html
 COPY src/ /var/www/html/
+RUN chown -R nginx.nginx /var/www/html/src/resized_images
+
+
+# Switch to use a non-root user from here on
+USER nginx
 
 # Expose the port nginx is reachable on
+
 EXPOSE 8080
 
 # Let supervisord start nginx & php-fpm
