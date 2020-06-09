@@ -67,8 +67,11 @@ class ImageResizer{
             //return JSON response
             return json_encode(
                 array(
+                    "filename" => $image_name;
                     "message" => "Successful",
-                    "image_url" => $path
+                    "image_url" => $path,
+                    "file_size" => "2mb",
+                    "image_format" => 
                 )
             );           
         }
