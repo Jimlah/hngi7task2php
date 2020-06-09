@@ -18,11 +18,8 @@ $resize_width = $data->width;
 $resize_height = $data->height;
 
 
-//download image from url and save it to server
-$imageName = $object->downloadImage($image_url);
-
 //process downloaded image
-$object->processImage($imageName, $resize_width, $resize_height);
+$object->processImage($image_url, $resize_width, $resize_height);
 
 /**
 echo json_encode(

@@ -1,7 +1,7 @@
 <?php
 class ImageResizer{
 
-    public function downloadImage($url){
+    protected function downloadImage($url){
         $directoryName = 'original_images';
  
         //Check if the directory already exists.
@@ -46,17 +46,24 @@ class ImageResizer{
             echo json_encode(
                 array("error" => "Image width is below limit")
             );
+            die();
         }
         if ($height <= 10) {
             echo json_encode(
                 array("error" => "Image height is below limit")
             );     
+            die();
         }
     }
 
-    public function processImage($fileName, $width, $height){
+    public function processImage($url, $width, $height){
         //check dimensions given by user to confirm if they satisfy limit
         $this->checkDimensions($width, $height);
+
+        //download the image if validation passess
+        $this->downloadImage($url);
+
+
 
     }
 
