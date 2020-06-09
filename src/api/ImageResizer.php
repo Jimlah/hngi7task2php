@@ -37,17 +37,17 @@ class ImageResizer{
                 case IMAGETYPE_JPEG:
                     $resourceType = imagecreatefromjpeg("original_images/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                    imagejpeg($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                    imagejpeg($imageLayer, $uploadPath .$fileName);
                     break;
                 case IMAGETYPE_GIF:
                     $resourceType = imagecreatefromgif("original_images/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                    imagegif($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                    imagegif($imageLayer, $uploadPath .$fileName);
                     break;
                 case IMAGETYPE_PNG:
                     $resourceType = imagecreatefrompng("original_images/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                    imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                    imagepng($imageLayer, $uploadPath .$fileName);
                     break;
                 default:
                     $imageProcess = 0;
@@ -58,17 +58,18 @@ class ImageResizer{
             move_uploaded_file(@$file, $uploadPath. $resizeFileName. ".". $fileExt);
 
             //construct path of resized file to generate url
-            $image_name = "thump_".$resizeFileName.".".$fileExt;
-
-            $relative_path = $uploadPath . $image_name;
+            $relative_path = $uploadPath . $fileName;
 
             $path = $_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
 
             //return JSON response
             return json_encode(
                 array(
+                    "filename" => $fileName,
                     "message" => "Successful",
-                    "image_url" => $path
+                    "image_url" => $path,
+                    "file_size" => filesize($relative_path)/1000 ." kb",
+                    "image_format" => $fileExt
                 )
             );           
         }
