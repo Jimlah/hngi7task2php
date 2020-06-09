@@ -100,6 +100,11 @@ class ImageResizer{
             case IMAGETYPE_PNG:
                 $resourceType = imagecreatefrompng("original_images/".$fileName);
                 $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
+
+                // Let us preserve transparency
+                imagealphablending($imageLayer, true);
+                imagesavealpha($imageLayer, true);
+                
                 imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
                 break;
             default:
