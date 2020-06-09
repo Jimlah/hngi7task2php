@@ -134,6 +134,16 @@ if(!is_dir($directoryName)){
 function resizeImage($resourceType, $image_width, $image_height){
  $resizeWidth = $_POST['user_width'];
  $resizeHeight = $_POST['user_height'];
+
+if ($resizeWidth <= 10) {
+  echo "Width too small";
+  die();
+}
+if ($resizeHeight <= 10) {
+  echo "Height too small";
+  die();
+}
+
  $imageLayer = imagecreatetruecolor($resizeWidth, $resizeHeight);
      imagecopyresampled($imageLayer,$resourceType,0,0,0,0,$resizeWidth,$resizeHeight,$image_height,$image_width);
     return $imageLayer;
@@ -166,11 +176,6 @@ function resizeImage($resourceType, $image_width, $image_height){
                 $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
                 imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
                 break;
-             case IMAGETYPE_TIFF:
-                $resourceType = imagecreatefromtiff($fileName);
-                $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
-                imagetiff($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
-                break;
             default:
                 $imageProcess = 0;
                 break;
@@ -180,7 +185,12 @@ function resizeImage($resourceType, $image_width, $image_height){
         $imageProcess = 1;
     }
     if($imageProcess == 1){
+
+      $outputImage = $uploadPath."thump_".$resizeFileName.".".$fileExt;
+      echo "<img src= '$outputImage'/>";
+      echo '<br>';
         echo "Image Resized Successfully";
+        
     }else{
        echo "Note! Invalid Image"; 
     }
@@ -190,20 +200,7 @@ function resizeImage($resourceType, $image_width, $image_height){
               
 ?>
           
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
+    
           
           </form></div>
     </div>
