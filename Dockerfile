@@ -25,7 +25,7 @@ RUN mkdir -p /var/www/html
 
 # Make sure files/folders needed by the processes are accessable when they run under the nobody user
 RUN chown -R nginx.nginx /var/www/html && \
-  chown -R nginx.nginx /var/www/html/resized_images && \
+  chown -R nginx.nginx /var/www/html/src/resized_images && \
   chown -R nginx.nginx /run && \
   chown -R nginx.nginx /var/lib/nginx && \
   chown -R nginx.nginx /var/log/nginx
