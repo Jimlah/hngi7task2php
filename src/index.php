@@ -122,79 +122,84 @@ h1 {
               
               
 <?php
+
 if(isset($_POST['form_submit'])){
-$directoryName = 'resized_images';
- 
-//Check if the directory already exists.
-if(!is_dir($directoryName)){
-    //Directory does not exist, so lets create it.
-    mkdir($directoryName, 0755);
-}
-    
-function resizeImage($resourceType, $image_width, $image_height){
- $resizeWidth = $_POST['user_width'];
- $resizeHeight = $_POST['user_height'];
+  $directoryName = 'resized_images';
+  
+  //Check if the directory already exists.
+  if(!is_dir($directoryName)){
+      //Directory does not exist, so lets create it.
+      mkdir($directoryName, 0755);
+  }
+      
+  function resizeImage($resourceType, $image_width, $image_height){
+    $resizeWidth = $_POST['user_width'];
+    $resizeHeight = $_POST['user_height'];
 
-if ($resizeWidth <= 10) {
-  echo "Width too small";
-  die();
-}
-if ($resizeHeight <= 10) {
-  echo "Height too small";
-  die();
-}
+    if ($resizeWidth <= 10) {
+      echo "Width too small";
+      die();
+    }
 
- $imageLayer = imagecreatetruecolor($resizeWidth, $resizeHeight);
-     imagecopyresampled($imageLayer,$resourceType,0,0,0,0,$resizeWidth,$resizeHeight,$image_height,$image_width);
+
+    if ($resizeHeight <= 10) {
+      echo "Height too small";
+      die();
+    }
+
+    $imageLayer = imagecreatetruecolor($resizeWidth, $resizeHeight);
+    imagecopyresampled($imageLayer,$resourceType,0,0,0,0,$resizeWidth,$resizeHeight,$image_height,$image_width);
     return $imageLayer;
 
-}
+  }
 
-    $imageProcess = 0;
-    if(is_array($_FILES)){
-        $fileName = $_FILES['upload_image']['tmp_name'];
-        $sourceProperties = getimagesize($fileName);
-        $resizeFileName = time();
-        $uploadPath = "./resized_images/";
-        $fileExt = pathinfo($_FILES['upload_image']['name'], PATHINFO_EXTENSION);
-        $uploadImageType = $sourceProperties[2];
-        $sourceImageWidth = $sourceProperties[0];
-        $sourceImageHeight = $sourceProperties[1];
-        switch ($uploadImageType){
-            case IMAGETYPE_JPEG:
-                $resourceType = imagecreatefromjpeg($fileName);
-                $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
-                imagejpeg($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
-                break;
-            case IMAGETYPE_GIF:
-                $resourceType = imagecreatefromgif($fileName);
-                $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
-                imagegif($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
-                break;
-            case IMAGETYPE_PNG:
-                $resourceType = imagecreatefrompng($fileName);
-                $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
-                imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
-                break;
-            default:
-                $imageProcess = 0;
-                break;
-                
-        }
-        move_uploaded_file(@$file, $uploadPath. $resizeFileName. ".". $fileExt);
-        $imageProcess = 1;
+  $imageProcess = 0;
+  if(is_array($_FILES)){        
+    $fileName = $_FILES['upload_image']['tmp_name'];
+    $sourceProperties = getimagesize($fileName);
+    $resizeFileName = time();
+    $uploadPath = "./resized_images/";
+    $fileExt = pathinfo($_FILES['upload_image']['name'], PATHINFO_EXTENSION);
+    $uploadImageType = $sourceProperties[2];
+    $sourceImageWidth = $sourceProperties[0];
+    $sourceImageHeight = $sourceProperties[1];
+    switch ($uploadImageType){
+      case IMAGETYPE_JPEG:
+        $resourceType = imagecreatefromjpeg($fileName);
+          $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
+          imagejpeg($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+          break;
+      case IMAGETYPE_GIF:
+          $resourceType = imagecreatefromgif($fileName);
+          $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
+          imagegif($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+          break;
+      case IMAGETYPE_PNG:
+          $resourceType = imagecreatefrompng($fileName);
+          $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
+          imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+          break;
+      default:
+          $imageProcess = 0;
+          break;
+                    
     }
-    if($imageProcess == 1){
+          
+    move_uploaded_file(@$file, $uploadPath. $resizeFileName. ".". $fileExt);
+    $imageProcess = 1;
+  }
+  if($imageProcess == 1){
 
-      $outputImage = $uploadPath."thump_".$resizeFileName.".".$fileExt;
-      echo "<img src= '$outputImage'/>";
-      echo '<br>';
-        echo "Image Resized Successfully";
-        
-    }else{
-       echo "Note! Invalid Image"; 
-    }
-    $imageProcess = 0;
+    $outputImage = $uploadPath."thump_".$resizeFileName.".".$fileExt;
+    echo "<br><img src= '$outputImage'/>";
+    echo '<br>';
+    echo "Image Resized Successfully";
+    echo '<p><a href="download.php?file='. urlencode("thump_".$resizeFileName.".".$fileExt) . '">Download Image</a></p>';
+  }else{
+    echo "Note! Invalid Image"; 
+  }
+
+  $imageProcess = 0;
 }
 
               
