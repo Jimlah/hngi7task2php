@@ -127,6 +127,7 @@
               </div>
               <input type="submit" class="btn btn-success" name="form_submit">
             </div>
+            <br>
 
 
 
@@ -170,7 +171,6 @@
               if (is_array($_FILES)) {
                 $error = $_FILES['upload_image']['error'];
                 if (!$error) {
-                  print_r($_FILES);
                   $quality = 50;
                   $fileName = $_FILES['upload_image']['tmp_name'];
                   $sourceProperties = getimagesize($fileName);
@@ -208,6 +208,7 @@
                   echo "<div>
                   <p class='alert alert-danger'>Sorry!!! Your file File too large</p>
                 </div>";
+                  die;
                 }
                 if ($imageProcess == 1) {
                   $outputImage = $uploadPath . "thump_" . $resizeFileName . "." . $fileExt;
@@ -217,7 +218,9 @@
                   <p class='alert alert-success'>Image Resized Successfully</p>
                 </div>";
                 } else {
-                  echo "Note! Invalid Image";
+                  echo "<div>
+                  <p class='alert alert-danger'>Sorry!!! Invalid Image</p>
+                </div>";
                 }
               }
             }
