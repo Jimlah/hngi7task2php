@@ -1,6 +1,81 @@
 <?php
 class ImageResizer{
 
+    public function processImage($url, $width, $height){
+        //check dimensions given by user to confirm if they satisfy limit
+        if($this->checkDimensions($width, $height)){
+            return $this->checkDimensions($width, $height);
+        }
+        else{
+            //download the image if validation passess
+            $fileName = $this->downloadImage($url);
+
+            //resized images folder creation
+            $directoryName = 'resized_images';
+     
+            //Check if the directory already exists.
+            if(!is_dir($directoryName)){
+                //Directory does not exist, so lets create it.
+                mkdir($directoryName, 0755);
+            }
+
+            //get properties of image
+            $sourceProperties = getimagesize("original_images/".$fileName);
+            $resizeFileName = time();
+            $uploadPath = "resized_images/";
+
+            $fileExt = pathinfo("original_images/".$fileName, PATHINFO_EXTENSION);
+
+            //get file extension
+            $uploadImageType = $sourceProperties[2];
+            $sourceImageWidth = $sourceProperties[0];
+            $sourceImageHeight = $sourceProperties[1];
+
+
+            //resize image according to image format
+            switch ($uploadImageType){
+                case IMAGETYPE_JPEG:
+                    $resourceType = imagecreatefromjpeg("original_images/".$fileName);
+                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
+                    imagejpeg($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                    break;
+                case IMAGETYPE_GIF:
+                    $resourceType = imagecreatefromgif("original_images/".$fileName);
+                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
+                    imagegif($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                    break;
+                case IMAGETYPE_PNG:
+                    $resourceType = imagecreatefrompng("original_images/".$fileName);
+                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
+                    imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+                    break;
+                default:
+                    $imageProcess = 0;
+                    break;
+                    
+            }
+            //save resized file
+            move_uploaded_file(@$file, $uploadPath. $resizeFileName. ".". $fileExt);
+
+            //construct path of resized file to generate url
+            $image_name = "thump_".$resizeFileName.".".$fileExt;
+
+            $relative_path = $uploadPath . $image_name;
+
+            $path = $_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
+
+            //return JSON response
+            return json_encode(
+                array(
+                    "message" => "Successful",
+                    "image_url" => $path
+                )
+            );           
+        }
+
+
+    }
+    
     protected function downloadImage($url){
         $directoryName = 'original_images';
  
@@ -43,88 +118,19 @@ class ImageResizer{
 
     protected function checkDimensions($width, $height){
         if ($width <= 10) {
-            echo json_encode(
+            return json_encode(
                 array("message" => "Image width is below limit")
             );
             die();
         }
         if ($height <= 10) {
-            echo json_encode(
+            return json_encode(
                 array("message" => "Image height is below limit")
             );     
-            die();
+            
         }
     }
 
-    public function processImage($url, $width, $height){
-        //check dimensions given by user to confirm if they satisfy limit
-        $this->checkDimensions($width, $height);
-
-        //download the image if validation passess
-        $fileName = $this->downloadImage($url);
-
-        //resized images folder creation
-        $directoryName = 'resized_images';
- 
-        //Check if the directory already exists.
-        if(!is_dir($directoryName)){
-            //Directory does not exist, so lets create it.
-            mkdir($directoryName, 0755);
-        }
-
-        //get properties of image
-        $sourceProperties = getimagesize("original_images/".$fileName);
-        $resizeFileName = time();
-        $uploadPath = "resized_images/";
-
-        $fileExt = pathinfo("original_images/".$fileName, PATHINFO_EXTENSION);
-
-        //get file extension
-        $uploadImageType = $sourceProperties[2];
-        $sourceImageWidth = $sourceProperties[0];
-        $sourceImageHeight = $sourceProperties[1];
-
-
-        //resize image according to image format
-        switch ($uploadImageType){
-            case IMAGETYPE_JPEG:
-                $resourceType = imagecreatefromjpeg("original_images/".$fileName);
-                $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                imagejpeg($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
-                break;
-            case IMAGETYPE_GIF:
-                $resourceType = imagecreatefromgif("original_images/".$fileName);
-                $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                imagegif($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
-                break;
-            case IMAGETYPE_PNG:
-                $resourceType = imagecreatefrompng("original_images/".$fileName);
-                $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
-                break;
-            default:
-                $imageProcess = 0;
-                break;
-                
-        }
-        //save resized file
-        move_uploaded_file(@$file, $uploadPath. $resizeFileName. ".". $fileExt);
-
-        //construct path of resized file to generate url
-        $image_name = "thump_".$resizeFileName.".".$fileExt;
-
-        $relative_path = $uploadPath . $image_name;
-
-        $path = $_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
-
-        //return JSON response
-        echo json_encode(
-            array(
-                "message" => "Successful",
-                "image_url" => $path
-            )
-        );
-    }
 
 
 }

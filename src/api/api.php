@@ -21,7 +21,7 @@ $resize_height = $data->height;
 
 
 //process downloaded image and return JSON response
-$object->processImage($image_url, $resize_width, $resize_height);
+echo $object->processImage($image_url, $resize_width, $resize_height);
 
 
 
