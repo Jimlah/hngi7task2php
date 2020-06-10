@@ -29,9 +29,10 @@ class ImageResizer{
             $resizeFileName = time();
             $uploadPath = "../resized_images/";
 
+            //get file extension
             $fileExt = pathinfo("../temp/".$fileName, PATHINFO_EXTENSION);
 
-            //get file extension
+            //get image properties
             $uploadImageType = $sourceProperties[2];
             $sourceImageWidth = $sourceProperties[0];
             $sourceImageHeight = $sourceProperties[1];
