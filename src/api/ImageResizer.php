@@ -148,6 +148,15 @@ class ImageResizer{
     }
 
     private function checkValidImage($url){
+        if($url == ""){
+            http_response_code(400);
+            return json_encode(
+                array(
+                    "message" => "No image specified"
+                )
+            );
+            die();          
+        }
         $extension = strtolower(substr($url, -3));
         if($extension == "jpg" OR $extension == "png" OR $extension == "gif" OR $extension == "jpeg"){
             return "Valid";
