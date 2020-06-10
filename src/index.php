@@ -43,7 +43,7 @@
       padding: 20px;
       border-radius: 10px;
       /*border: 0.5px solid rgba(130, 130, 130, 0.25);*/
-      /*box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1), 
+      /*box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1),
                 0 0 0 1px rgba(0, 0, 0, 0.1);*/
     }
 
@@ -96,7 +96,6 @@
 </head>
 
 <body class="home-one">
-
 
   <div class="wrapper">
     <div class="container">
