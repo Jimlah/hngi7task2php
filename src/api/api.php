@@ -7,21 +7,34 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Headers");
 
-include_once('ImageResizer.php');
+$documentation_url = "https://lucid.blog/mutevu/post/how-to-consume-the-image-resize-api-83a";
 
-//read content of request from POST request
-$data = json_decode(file_get_contents("php://input"));
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    include_once('ImageResizer.php');
 
-$object = new ImageResizer();
+	//read content of request from POST request
+	$data = json_decode(file_get_contents("php://input"));
 
-//retrieve parameters from JSON POST data
-$image_url = $data->image;
-$resize_width = $data->width;
-$resize_height = $data->height;
+	$object = new ImageResizer();
+
+	//retrieve parameters from JSON POST data
+	$image_url = $data->image;
+	$resize_width = $data->width;
+	$resize_height = $data->height;
 
 
-//process downloaded image and return JSON response
-echo $object->processImage($image_url, $resize_width, $resize_height);
+	//process downloaded image and return JSON response
+	echo $object->processImage($image_url, $resize_width, $resize_height);
+}
+else{
+	echo json_encode(
+		array(
+			"message" => "Invalid request. Only POST requests are allowed. Read the documentation here: ".$documentation_url
+		)
+	);
+}
+
+
 
 
 

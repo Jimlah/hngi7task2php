@@ -11,7 +11,7 @@ class ImageResizer{
             $fileName = $this->downloadImage($url);
 
             //resized images folder creation
-            $directoryName = 'resized_images';
+            $directoryName = '../resized_images';
      
             //Check if the directory already exists.
             if(!is_dir($directoryName)){
@@ -20,11 +20,11 @@ class ImageResizer{
             }
 
             //get properties of image
-            $sourceProperties = getimagesize("original_images/".$fileName);
+            $sourceProperties = getimagesize("../temp/".$fileName);
             $resizeFileName = time();
-            $uploadPath = "resized_images/";
+            $uploadPath = "../resized_images/";
 
-            $fileExt = pathinfo("original_images/".$fileName, PATHINFO_EXTENSION);
+            $fileExt = pathinfo("../temp/".$fileName, PATHINFO_EXTENSION);
 
             //get file extension
             $uploadImageType = $sourceProperties[2];
@@ -35,17 +35,17 @@ class ImageResizer{
             //resize image according to image format
             switch ($uploadImageType){
                 case IMAGETYPE_JPEG:
-                    $resourceType = imagecreatefromjpeg("original_images/".$fileName);
+                    $resourceType = imagecreatefromjpeg("../temp/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
                     imagejpeg($imageLayer, $uploadPath .$fileName);
                     break;
                 case IMAGETYPE_GIF:
-                    $resourceType = imagecreatefromgif("original_images/".$fileName);
+                    $resourceType = imagecreatefromgif("../temp/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
                     imagegif($imageLayer, $uploadPath .$fileName);
                     break;
                 case IMAGETYPE_PNG:
-                    $resourceType = imagecreatefrompng("original_images/".$fileName);
+                    $resourceType = imagecreatefrompng("../temp/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
                     imagepng($imageLayer, $uploadPath .$fileName);
                     break;
@@ -59,6 +59,9 @@ class ImageResizer{
 
             //construct path of resized file to generate url
             $relative_path = $uploadPath . $fileName;
+
+            //delete file in temp folder after resizing
+            unlink("../temp/".$fileName);
 
             $path = "http://" .$_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
 
@@ -82,7 +85,7 @@ class ImageResizer{
     }
     
     protected function downloadImage($url){
-        $directoryName = 'original_images';
+        $directoryName = '../temp';
  
         //Check if the directory already exists.
         if(!is_dir($directoryName)){
@@ -104,7 +107,7 @@ class ImageResizer{
         $img_content = file_get_contents($url);
 
         //write downloaded file into output file
-        $new_img = fopen("original_images/".$newFilename, "w");      
+        $new_img = fopen("../temp/".$newFilename, "w");      
         $scrape = fwrite($new_img, $img_content);    
 
         if($scrape == true){
