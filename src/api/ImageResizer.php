@@ -1,9 +1,9 @@
 <?php
 class ImageResizer{
 
-    public function processImage($url, $width, $height){
+    public function processImage($url, $width){
         //check dimensions given by user to confirm if they satisfy limit
-        if($this->checkDimensions($width, $height)){
+        if($this->checkDimensions($width)){
             return $this->checkDimensions($width, $height);
         }
         else{
@@ -12,8 +12,19 @@ class ImageResizer{
                 return $this->checkValidImage($url);
             }
 
+            //set dimension to width
+            $dimension = $width;
+
+            //set quality
+            $quality = 100;
+
             //download the image if validation passess
             $fileName = $this->downloadImage($url);
+
+            //check size of image
+            if($this->checkImageSize($fileName)){
+                return $this->checkImageSize($fileName);
+            }
 
             //resized images folder creation
             $directoryName = '../resized_images';
@@ -36,24 +47,32 @@ class ImageResizer{
             $uploadImageType = $sourceProperties[2];
             $sourceImageWidth = $sourceProperties[0];
             $sourceImageHeight = $sourceProperties[1];
+            $ratio = $sourceImageWidth / $sourceImageHeight;
 
+            if ($ratio < 1) {
+                $new_Width = $dimension * $ratio;
+                $new_Height = $dimension;
+              } else {
+                $new_Width = $dimension * $ratio;
+                $new_Height = $dimension;
+              }
 
             //resize image according to image format
             switch ($uploadImageType){
                 case IMAGETYPE_JPEG:
                     $resourceType = imagecreatefromjpeg("../temp/".$fileName);
-                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                    imagejpeg($imageLayer, $uploadPath .$fileName);
+                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $new_Width, $new_Height);
+                    imagejpeg($imageLayer, $uploadPath .$fileName, $quality);
                     break;
                 case IMAGETYPE_GIF:
                     $resourceType = imagecreatefromgif("../temp/".$fileName);
-                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                    imagegif($imageLayer, $uploadPath .$fileName);
+                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $new_Width, $new_Height);
+                    imagegif($imageLayer, $uploadPath .$fileName, $quality);
                     break;
                 case IMAGETYPE_PNG:
                     $resourceType = imagecreatefrompng("../temp/".$fileName);
-                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
-                    imagepng($imageLayer, $uploadPath .$fileName);
+                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $new_Width, $new_Height);
+                    imagepng($imageLayer, $uploadPath .$fileName, 9);
                     break;
                 default:
                     $imageProcess = 0;
@@ -81,8 +100,8 @@ class ImageResizer{
                     "image_format" => $fileExt,
                     "initial_height" => $sourceImageHeight."px",
                     "initial_width" => $sourceImageWidth."px",
-                    "resized_height" => $height."px",
-                    "resized_width" => $width."px",
+                    "resized_height" => $new_Height."px",
+                    "resized_width" => $new_Width."px",
                 )
             );           
         }
@@ -130,21 +149,13 @@ class ImageResizer{
 
     }
 
-    protected function checkDimensions($width, $height){
+    protected function checkDimensions($width){
         if ($width <= 10) {
             http_response_code(422);
             return json_encode(
                 array("message" => "Image width is below limit")
             );
             die();
-        }
-        if ($height <= 10) {
-            http_response_code(422);
-            return json_encode(
-                array("message" => "Image height is below limit")
-            ); 
-            die();    
-            
         }
     }
 
@@ -188,6 +199,24 @@ class ImageResizer{
             ); 
         }
         **/
+    }
+
+    protected function checkImageSize($image){
+        $relative_path = '../temp/'.$image;
+
+        if(filesize($relative_path) > 100000000){
+            //delete file in temp folder after resizing
+            unlink($relative_path);
+
+            
+            http_response_code(400);
+            return json_encode(
+                array(
+                    "message" => "File size exceeds set limit of 100MB"
+                )
+            );
+            die();
+        }
     }
 
 

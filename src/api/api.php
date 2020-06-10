@@ -20,11 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	//retrieve parameters from JSON POST data
 	$image_url = $data->image;
 	$resize_width = $data->width;
-	$resize_height = $data->height;
 
 
 	//process downloaded image and return JSON response
-	echo $object->processImage($image_url, $resize_width, $resize_height);
+	echo $object->processImage($image_url, $resize_width);
 	//echo($object->checkValidImage($image_url));
 }
 else{
