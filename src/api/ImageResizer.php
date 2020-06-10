@@ -60,7 +60,7 @@ class ImageResizer{
             //construct path of resized file to generate url
             $relative_path = $uploadPath . $fileName;
 
-            $path = $_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
+            $path = "http://" .$_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
 
             //return JSON response
             return json_encode(
@@ -68,8 +68,12 @@ class ImageResizer{
                     "filename" => $fileName,
                     "message" => "Successful",
                     "image_url" => $path,
-                    "file_size" => filesize($relative_path)/1000 ." kb",
-                    "image_format" => $fileExt
+                    "file_size" => filesize($relative_path)/1000 ."kb",
+                    "image_format" => $fileExt,
+                    "initial_height" => $sourceImageHeight."px",
+                    "initial_width" => $sourceImageWidth."px",
+                    "resized_height" => $height."px",
+                    "resized_width" => $width."px",
                 )
             );           
         }
