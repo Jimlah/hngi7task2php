@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 	//process downloaded image and return JSON response
 	echo $object->processImage($image_url, $resize_width, $resize_height);
+	//echo($object->checkValidImage($image_url));
 }
 else{
 	echo json_encode(

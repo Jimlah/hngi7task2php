@@ -7,6 +7,11 @@ class ImageResizer{
             return $this->checkDimensions($width, $height);
         }
         else{
+
+            if($this->checkValidImage($url) != "Valid"){
+                return $this->checkValidImage($url);
+            }
+
             //download the image if validation passess
             $fileName = $this->downloadImage($url);
 
@@ -134,9 +139,41 @@ class ImageResizer{
         if ($height <= 10) {
             return json_encode(
                 array("message" => "Image height is below limit")
-            );     
+            ); 
+            die();    
             
         }
+    }
+
+    private function checkValidImage($url){
+        $extension = strtolower(substr($url, -3));
+        if($extension == "jpg" OR $extension == "png" OR $extension == "gif" OR $extension == "jpeg"){
+            return "Valid";
+        }
+        else{
+            return json_encode(
+                array(
+                    "message" => "Invalid image. Please check URL"
+                )
+            );
+        }
+/**
+        if (exif_imagetype($url) != IMAGETYPE_GIF) {
+            return json_encode(
+                array("message" => "Invalid")
+            ); 
+        }
+        elseif(exif_imagetype($url) != IMAGETYPE_JPEG) {
+            return json_encode(
+                array("message" => "Invalid image")
+            ); 
+        }
+        elseif(exif_imagetype($url) != IMAGETYPE_PNG) {
+            return json_encode(
+                array("message" => "Invalid image")
+            ); 
+        }
+        **/
     }
 
 
