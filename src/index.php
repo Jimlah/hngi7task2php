@@ -173,7 +173,7 @@
               if (is_array($_FILES)) {
                 $error = $_FILES['upload_image']['error'];
                 if (!$error) {
-                  $quality = 50;
+                  $quality = 100;
                   $fileName = $_FILES['upload_image']['tmp_name'];
                   $imageName = $_FILES['upload_image']['name'];
                   $uploadPath = "./resized_images/";
@@ -184,19 +184,29 @@
                   $height = $image_size[1];
                   $ratio = $width / $height;
 
-                  if ($ratio > 1) {
-                    $new_Width = $dimension;
-                    $new_Height = $dimension / $ratio;
+
+                  echo "the dimension before is resizing (" . $height . ', ' . $width . ')<br>';
+
+                  
+
+                  if ($ratio < 1) {
+                    $new_Width = $dimension * $ratio;
+                    $new_Height = $dimension;
                   } else {
-                    $new_Width = $dimension / $ratio;
+                    $new_Width = $dimension * $ratio;
                     $new_Height = $dimension;
                   }
+
+                  echo "the dimension after resizing (" . $new_Height . ', ' . $new_Width . ')<br>';
+
+
+                  
                   switch ($uploadImageType) {
                     case IMAGETYPE_JPEG:
                       $src = imagecreatefromstring(file_get_contents($fileName));
                       $destination = imagecreatetruecolor($new_Width, $new_Height);
                       imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
-                      imagejpeg($destination, $uploadPath . "thump_" . $imageName . "." . $fileExt, $quality);
+                      imagejpeg($destination, $uploadPath . "thump_" . $imageName . "." . $fileExt, 100);
                       break;
                     case IMAGETYPE_GIF:
                       $src = imagecreatefromstring(file_get_contents($fileName));
@@ -208,7 +218,7 @@
                       $src = imagecreatefromstring(file_get_contents($fileName));
                       $destination = imagecreatetruecolor($new_Width, $new_Height);
                       imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
-                      imagepng($destination, $uploadPath . "thump_" . $imageName . "." . $fileExt, $quality);
+                      imagepng($destination, $uploadPath . "thump_" . $imageName . "." . $fileExt, 9);
                       break;
                     default:
                       $src = imagecreatefromstring(file_get_contents($fileName));
@@ -227,13 +237,19 @@
                 </div>";
                   die;
                 }
+
+
+
+
                 if ($imageProcess == 1) {
                   $outputImage = $uploadPath . "thump_" . $imageName . "." . $fileExt;
                   echo "<img src= '$outputImage'/>";
                   echo '<br>';
                   echo "<div>
                   <p class='alert alert-success'>Image Resized Successfully</p>
+                  
                 </div>";
+                echo '<p><a href="download.php?file='. urlencode("thump_" . $imageName . "." . $fileExt) . '">Download Image</a></p>';
                 } else {
                   echo "<div>
                   <p class='alert alert-danger'>Sorry!!! Invalid Image</p>
