@@ -173,6 +173,7 @@
               if (is_array($_FILES)) {
                 $error = $_FILES['upload_image']['error'];
                 if (!$error) {
+                  if ($dimension > 10) {
                   $quality = 100;
                   $fileName = $_FILES['upload_image']['tmp_name'];
                   $imageName = $_FILES['upload_image']['name'];
@@ -185,7 +186,7 @@
                   $ratio = $width / $height;
 
 
-                  echo "the dimension before is resizing (" . $height . ', ' . $width . ')<br>';
+                  echo "the dimension before resizing (" . $height . ', ' . $width . ')<br>';
 
                   
 
@@ -230,6 +231,12 @@
 
                   move_uploaded_file(@$file, $uploadPath . $imageName . "." . $fileExt);
                   $imageProcess = 1;
+                } else {
+                  echo "<div>
+                  <p class='alert alert-danger'>Sorry!!! Your dimension is too small</p>
+                </div>";
+                  die;
+                }
                 } else {
 
                   echo "<div>
