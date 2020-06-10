@@ -147,27 +147,6 @@
                 mkdir($directoryName, 0755);
               }
 
-              function resizeImage($resourceType, $image_width, $image_height)
-              {
-                global $width;
-                global $height;
-                $resizeWidth = $width;
-                $resizeHeight = $height;
-
-                if ($resizeWidth <= 10) {
-                  echo "Width too small";
-                  die;
-                }
-                if ($resizeHeight <= 10) {
-                  echo "Height too small";
-                  die;
-                }
-
-                $destination = imagecreatetruecolor($resizeWidth, $resizeHeight);
-                imagecopyresampled($destination, $resourceType, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $image_height, $image_width);
-                return $destination;
-              }
-
 
               $imageProcess = 0;
               if (is_array($_FILES)) {
@@ -207,29 +186,29 @@
                       $src = imagecreatefromstring(file_get_contents($fileName));
                       $destination = imagecreatetruecolor($new_Width, $new_Height);
                       imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
-                      imagejpeg($destination, $uploadPath . "thump_" . $imageName . "." . $fileExt, 100);
+                      imagejpeg($destination, $uploadPath . "thump_" . $imageName, 100);
                       break;
                     case IMAGETYPE_GIF:
                       $src = imagecreatefromstring(file_get_contents($fileName));
                       $destination = imagecreatetruecolor($new_Width, $new_Height);
                       imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
-                      imagegif($destination, $uploadPath . "thump_" . $imageName . "." . $fileExt, $quality);
+                      imagegif($destination, $uploadPath . "thump_" . $imageName, $quality);
                       break;
                     case IMAGETYPE_PNG:
                       $src = imagecreatefromstring(file_get_contents($fileName));
                       $destination = imagecreatetruecolor($new_Width, $new_Height);
                       imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
-                      imagepng($destination, $uploadPath . "thump_" . $imageName . "." . $fileExt, 9);
+                      imagepng($destination, $uploadPath . "thump_" . $imageName , 9);
                       break;
                     default:
                       $src = imagecreatefromstring(file_get_contents($fileName));
                       $destination = imagecreatetruecolor($new_Width, $new_Height);
                       imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
-                      imagepng($destination, $uploadPath . "thump_" . $imageName . "." . $fileExt, $quality);
+                      imagepng($destination, $uploadPath . "thump_" . $imageName, $quality);
                       break;
                   }
 
-                  move_uploaded_file(@$file, $uploadPath . $imageName . "." . $fileExt);
+                  move_uploaded_file(@$file, $uploadPath . $imageName);
                   $imageProcess = 1;
                 } else {
                   echo "<div>
@@ -249,14 +228,14 @@
 
 
                 if ($imageProcess == 1) {
-                  $outputImage = $uploadPath . "thump_" . $imageName . "." . $fileExt;
+                  $outputImage = $uploadPath . "thump_" . $imageName ;
                   echo "<img src= '$outputImage'/>";
                   echo '<br>';
                   echo "<div>
                   <p class='alert alert-success'>Image Resized Successfully</p>
                   
                 </div>";
-                echo '<p><a href="download.php?file='. urlencode("thump_" . $imageName . "." . $fileExt) . '">Download Image</a></p>';
+                echo '<p><a class="btn btn-primary" href="download.php?file='. urlencode("thump_" . $imageName) . '">Download Image</a></p>';
                 } else {
                   echo "<div>
                   <p class='alert alert-danger'>Sorry!!! Invalid Image</p>
