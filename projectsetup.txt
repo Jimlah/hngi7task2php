@@ -1,4 +1,3 @@
-https://apidocs.imgur.com/?version=latest#2078c7e0-c2b8-4bc8-a646-6e544b087d0f
 -Basic app features
 --You can upload your picture
 --You can set the width and height of picture
@@ -15,4 +14,4 @@ https://apidocs.imgur.com/?version=latest#2078c7e0-c2b8-4bc8-a646-6e544b087d0f
 --user make request to endpoint
 --endpoint displays upload image or submit button
 
-http://localhost/hngi7task2php/width/height/imagename
+http://localhost/hngi7task2php/src/api.php?width=300&height=300

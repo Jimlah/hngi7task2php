@@ -5,11 +5,11 @@ header("Access-Control-Allow-Headers: access");
 header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
-
+error_reporting(0);
 $width = isset($_GET['width']) ? $_GET['width'] : die();
 $height = isset($_GET['height']) ? $_GET['height'] : die();
 
-            if (!empty($width) && !empty($height))) {
+            if (!empty($width) && !empty($height)) {
               $directoryName = 'resized_images';
              
 
@@ -58,7 +58,7 @@ $height = isset($_GET['height']) ? $_GET['height'] : die();
               if (is_array($_FILES)) {
                 $error = $_FILES['upload_image']['error'];
                 if (!$error) {
-                  print_r($_FILES);
+                  
                   $quality = 50;
                   $fileName = $_FILES['upload_image']['tmp_name'];
                   $sourceProperties = getimagesize($fileName);
