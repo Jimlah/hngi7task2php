@@ -131,12 +131,14 @@ class ImageResizer{
 
     protected function checkDimensions($width, $height){
         if ($width <= 10) {
+            http_response_code(422);
             return json_encode(
                 array("message" => "Image width is below limit")
             );
             die();
         }
         if ($height <= 10) {
+            http_response_code(422);
             return json_encode(
                 array("message" => "Image height is below limit")
             ); 
@@ -151,11 +153,13 @@ class ImageResizer{
             return "Valid";
         }
         else{
+            http_response_code(422);
             return json_encode(
                 array(
                     "message" => "Invalid image. Please check URL"
                 )
             );
+            die();
         }
 /**
         if (exif_imagetype($url) != IMAGETYPE_GIF) {
