@@ -110,23 +110,25 @@
               <i class="fas fa-file-pdf" data-fa-transform="shrink-3 down-2 right-6 rotate-45"></i>
             </div>
             <!--<input type="file" id="file-upload">-->
-            <p>
-              <!--            Drag and drop files here, or -->
-              <!--          <a href="#" id="file-browser">browse</a> your computer.-->
-              <label>Choose Image</label>
-              <input type="file" name="upload_image" required></p>
+
+            <div class="custom-file">
+              <label class="custom-file-label" for="inputGroupFile02"></label>
+              <input type="file" class="custom-file-input" name="upload_image" id="inputGroupFile02" required>
+
+            </div>
             <br>
             <div class="text-center">
               <div class="form-group">
                 <label for="width"></label>
-                <input type="number" name="user_width" class="form-control" placeholder="Input Required width in pixels" required>
+                <input type="number" name="txt_dem" class="form-control" placeholder="Input Required width in pixels" required>
               </div>
-              <div class="form-group">
+              <!-- <div class="form-group">
                 <label for=""></label>
                 <input type="number" name="user_height" class="form-control" placeholder="Input Required height in pixels" required>
-              </div>
+              </div> -->
               <input type="submit" class="btn btn-success" name="form_submit">
             </div>
+            <br>
 
 
 
@@ -135,8 +137,9 @@
             <?php
             if (isset($_POST['form_submit'])) {
               $directoryName = 'resized_images';
-              $width = $_POST['user_width'];
-              $height = $_POST['user_height'];
+              $dimension = $_POST['txt_dem'];
+              $quality = 5;
+
 
               //Check if the directory already exists.
               if (!is_dir($directoryName)) {
@@ -144,80 +147,99 @@
                 mkdir($directoryName, 0755);
               }
 
-              function resizeImage($resourceType, $image_width, $image_height)
-              {
-                global $width;
-                global $height;
-                $resizeWidth = $width;
-                $resizeHeight = $height;
-
-                if ($resizeWidth <= 10) {
-                  echo "Width too small";
-                  die;
-                }
-                if ($resizeHeight <= 10) {
-                  echo "Height too small";
-                  die;
-                }
-
-                $imageLayer = imagecreatetruecolor($resizeWidth, $resizeHeight);
-                imagecopyresampled($imageLayer, $resourceType, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $image_height, $image_width);
-                return $imageLayer;
-              }
-
 
               $imageProcess = 0;
               if (is_array($_FILES)) {
                 $error = $_FILES['upload_image']['error'];
                 if (!$error) {
-                  print_r($_FILES);
-                  $quality = 50;
+                  if ($dimension > 10) {
+                  $quality = 100;
                   $fileName = $_FILES['upload_image']['tmp_name'];
-                  $sourceProperties = getimagesize($fileName);
-                  $resizeFileName = time();
+                  $imageName = $_FILES['upload_image']['name'];
                   $uploadPath = "./resized_images/";
                   $fileExt = pathinfo($_FILES['upload_image']['name'], PATHINFO_EXTENSION);
-                  $uploadImageType = $sourceProperties[2];
-                  $sourceImageWidth = $sourceProperties[0];
-                  $sourceImageHeight = $sourceProperties[1];
+                  $image_size = getimagesize($fileName);
+                  $uploadImageType = $image_size[2];
+                  $width = $image_size[0];
+                  $height = $image_size[1];
+                  $ratio = $width / $height;
+
+
+                  echo "the dimension before resizing (" . $height . ', ' . $width . ')<br>';
+
+                  
+
+                  if ($ratio < 1) {
+                    $new_Width = $dimension * $ratio;
+                    $new_Height = $dimension;
+                  } else {
+                    $new_Width = $dimension * $ratio;
+                    $new_Height = $dimension;
+                  }
+
+                  echo "the dimension after resizing (" . $new_Height . ', ' . $new_Width . ')<br>';
+
+
+                  
                   switch ($uploadImageType) {
                     case IMAGETYPE_JPEG:
-                      $resourceType = imagecreatefromjpeg($fileName);
-                      $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
-                      imagejpeg($imageLayer, $uploadPath . "thump_" . $resizeFileName . "." . $fileExt, $quality);
+                      $src = imagecreatefromstring(file_get_contents($fileName));
+                      $destination = imagecreatetruecolor($new_Width, $new_Height);
+                      imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
+                      imagejpeg($destination, $uploadPath . "thump_" . $imageName, 100);
                       break;
                     case IMAGETYPE_GIF:
-                      $resourceType = imagecreatefromgif($fileName);
-                      $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
-                      imagegif($imageLayer, $uploadPath . "thump_" . $resizeFileName . "." . $fileExt, $quality);
+                      $src = imagecreatefromstring(file_get_contents($fileName));
+                      $destination = imagecreatetruecolor($new_Width, $new_Height);
+                      imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
+                      imagegif($destination, $uploadPath . "thump_" . $imageName, $quality);
                       break;
                     case IMAGETYPE_PNG:
-                      $resourceType = imagecreatefrompng($fileName);
-                      $imageLayer = resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight);
-                      imagepng($imageLayer, $uploadPath . "thump_" . $resizeFileName . "." . $fileExt, $quality);
+                      $src = imagecreatefromstring(file_get_contents($fileName));
+                      $destination = imagecreatetruecolor($new_Width, $new_Height);
+                      imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
+                      imagepng($destination, $uploadPath . "thump_" . $imageName , 9);
                       break;
                     default:
-                      $imageProcess = 0;
+                      $src = imagecreatefromstring(file_get_contents($fileName));
+                      $destination = imagecreatetruecolor($new_Width, $new_Height);
+                      imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $width, $height);
+                      imagepng($destination, $uploadPath . "thump_" . $imageName, $quality);
                       break;
                   }
 
-                  move_uploaded_file(@$file, $uploadPath . $resizeFileName . "." . $fileExt);
+                  move_uploaded_file(@$file, $uploadPath . $imageName);
                   $imageProcess = 1;
+                } else {
+                  echo "<div>
+                  <p class='alert alert-danger'>Sorry!!! Your dimension is too small</p>
+                </div>";
+                  die;
+                }
                 } else {
 
                   echo "<div>
                   <p class='alert alert-danger'>Sorry!!! Your file File too large</p>
                 </div>";
+                  die;
                 }
+
+
+
+
                 if ($imageProcess == 1) {
-                  $outputImage = $uploadPath . "thump_" . $resizeFileName . "." . $fileExt;
+                  $outputImage = $uploadPath . "thump_" . $imageName ;
                   echo "<img src= '$outputImage'/>";
                   echo '<br>';
                   echo "<div>
                   <p class='alert alert-success'>Image Resized Successfully</p>
+                  
                 </div>";
+                echo '<p><a class="btn btn-primary" href="download.php?file='. urlencode("thump_" . $imageName) . '">Download Image</a></p>';
                 } else {
-                  echo "Note! Invalid Image";
+                  echo "<div>
+                  <p class='alert alert-danger'>Sorry!!! Invalid Image</p>
+                </div>";
                 }
               }
             }
@@ -240,6 +262,12 @@
     $("#file-browser").click(function(e) {
       e.preventDefault();
       $("#file-upload").trigger("click");
+    });
+
+
+    $('input[type="file"]').change(function(e) {
+      var fileName = e.target.files[0].name;
+      $('.custom-file-label').html(fileName);
     });
   </script>
 
