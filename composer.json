@@ -1,0 +1,14 @@
+{
+    "require": {
+    	"php": "^7.3",
+    	"ext-gd": "*",
+    	"ext-fileinfo": "*",
+        "guzzlehttp/guzzle": "^6.5"
+    },
+    "autoload": {
+    	"psr-4": {
+    		"TeamFlash\\": "src/app/"
+    	},
+    	"files": ["src/helpers.php"]
+    }
+}
