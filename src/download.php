@@ -1,11 +1,11 @@
 <?php
-if(isset($_REQUEST["file"])){
+if(isset($_GET["file"])){
     // Get parameters
-    $file = urldecode($_REQUEST["file"]); // Decode URL-encoded string
+    $file = urldecode($_GET["file"]); // Decode URL-encoded string
 
     /* Test whether the file name contains illegal characters
     such as "../" using the regular expression */
-    if(preg_match('/^[^.][-a-z0-9_.]+[a-z]$/i', $file)){
+    if($file){
         $filepath = "resized_images/" . $file;
 
         // Process download

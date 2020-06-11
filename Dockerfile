@@ -29,14 +29,20 @@ RUN chown -R nginx.nginx /var/www/html && \
   chown -R nginx.nginx /var/lib/nginx && \
   chown -R nginx.nginx /var/log/nginx
 
-# Switch to use a non-root user from here on
-USER nginx
 
 # Add application
 WORKDIR /var/www/html
 COPY src/ /var/www/html/
+RUN rm -rf /var/www/html/resized_images/
+RUN mkdir -p /var/www/html/resized_images
+RUN chown -R nginx.nginx /var/www/html/resized_images
+RUN chown -R nginx.nginx /var/www/html/api
+
+# Switch to use a non-root user from here on
+USER nginx
 
 # Expose the port nginx is reachable on
+
 EXPOSE 8080
 
 # Let supervisord start nginx & php-fpm
