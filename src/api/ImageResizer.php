@@ -16,7 +16,8 @@ class ImageResizer{
             $dimension = $width;
 
             //set quality
-            $quality = 100;
+            $quality = 50;
+            $qualityPng = 5;
 
             //download the image if validation passess
             $fileName = $this->downloadImage($url);
@@ -60,23 +61,31 @@ class ImageResizer{
             //resize image according to image format
             switch ($uploadImageType){
                 case IMAGETYPE_JPEG:
-                    $resourceType = imagecreatefromjpeg("../temp/".$fileName);
-                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $new_Width, $new_Height);
-                    imagejpeg($imageLayer, $uploadPath .$fileName, $quality);
+                    $src = imagecreatefromstring(file_get_contents("../temp/".$fileName));
+                    $destination = imagecreatetruecolor($new_Width, $new_Height);
+                    imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $sourceImageWidth, $sourceImageHeight);
+                    imagejpeg($destination, $uploadPath  . $fileName, $quality);
                     break;
                 case IMAGETYPE_GIF:
-                    $resourceType = imagecreatefromgif("../temp/".$fileName);
-                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $new_Width, $new_Height);
-                    imagegif($imageLayer, $uploadPath .$fileName, $quality);
+                    $src = imagecreatefromstring(file_get_contents("../temp/".$fileName));
+                    $destination = imagecreatetruecolor($new_Width, $new_Height);
+                    imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $sourceImageWidth, $sourceImageHeight);
+                    imagegif($destination, $uploadPath  . $fileName, $quality);
                     break;
                 case IMAGETYPE_PNG:
-                    $resourceType = imagecreatefrompng("../temp/".$fileName);
-                    $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $new_Width, $new_Height);
-                    imagepng($imageLayer, $uploadPath .$fileName, 9);
+                    $src = imagecreatefromstring(file_get_contents("../temp/".$fileName));
+                    $destination = imagecreatetruecolor($new_Width, $new_Height);
+                    imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $sourceImageWidth, $sourceImageHeight);
+                    imagepng($destination, $uploadPath  . $fileName, $qualityPng);
                     break;
                 default:
-                    $imageProcess = 0;
-                    break;
+                    http_response_code(422);
+                    return json_encode(
+                        array(
+                            "message" => "Invalid image. Please check URL"
+                        )
+                    );
+                    die();
                     
             }
             //save resized file
