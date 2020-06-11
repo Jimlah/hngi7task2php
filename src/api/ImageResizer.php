@@ -88,7 +88,7 @@ class ImageResizer{
             //delete file in temp folder after resizing
             unlink("../temp/".$fileName);
 
-            $path = "http://" .$_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
+            $path = "http://" .$_SERVER['SERVER_NAME'] ."/resized_images/" .$fileName;
 
             //return JSON response
             return json_encode(
