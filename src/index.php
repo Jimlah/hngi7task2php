@@ -1,42 +1,35 @@
-<?php
-ini_set('display_errors', 1);
+<?php declare(strict_types=1);
 
-// required headers
-header('Access-Control-Allow-Origin: *');
-header("Content-Type: application/json");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Headers");
+// Register the autoloader
+require_once '../vendor/autoload.php';
 
-$documentation_url = "https://lucid.blog/mutevu/post/how-to-consume-the-image-resize-api-83a";
+set_error_handler('error_handler');
+
+// Get the requested URI
+$uri = $_SERVER['REQUEST_URI'];
+$uri = ltrim(parse_url($uri, PHP_URL_PATH), '/');
+
+// Let's bind some objects to the application
+TeamFlash\Registry::bind('config', require 'config.php');
+TeamFlash\Registry::bind('resizer', (new TeamFlash\ResizeImage));
+
+if (preg_match('@^([hw0-9\_,]+)/([\s\S]+)$@D', $uri, $matches)) {
+	// We've got a valid API URI for resizing images on the fly.
+	// But this route supports only the GET method. So we have to bail
+	// out when a POST request is sent to this route.
+	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
+		response('Only GET method is supported for this route', 405);
+	}
+
+	TeamFlash\Registry::get('resizer')->resizeImageOnTheFly($matches[1], $matches[2]);
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    include_once('ImageResizer.php');
-
-	//read content of request from POST request
-	$data = json_decode(file_get_contents("php://input"));
-
-	$object = new ImageResizer();
-
-	//retrieve parameters from JSON POST data
-	$image_url = $data->image;
-	$resize_width = $data->width;
-
-
-	//process downloaded image and return JSON response
-	echo $object->processImage($image_url, $resize_width);
-	//echo($object->checkValidImage($image_url));
-}
-else{
-	echo json_encode(
-		array(
-			"message" => "Invalid request. Only POST requests are allowed. Read the documentation here: ".$documentation_url
-		)
-	);
+	TeamFlash\Registry::get('resizer')->resizeImageOnPostMethod();
 }
 
-
-
-
-
-
-
+// If the request still reaches this point, then we can serve the frontend to the users.
+// Most precisely, a HTML form for users to resize their images. For simplicity sake, I will
+// only display a welcome page in the HTML format.
+response("Welcome to <strong>TeamFlash</strong> image resizer microservice", [], false);

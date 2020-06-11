@@ -1,233 +1,283 @@
-<?php
-class ImageResizer{
+<?php declare(strict_types=1);
 
-    public function processImage($url, $width){
-        //check dimensions given by user to confirm if they satisfy limit
-        if($this->checkDimensions($width)){
-            return $this->checkDimensions($width, $height);
-        }
-        else{
+/*
+ * This file/script handles the resizing of images.
+ *
+ */
 
-            if($this->checkValidImage($url) != "Valid"){
-                return $this->checkValidImage($url);
-            }
+namespace TeamFlash;
 
-            //set dimension to width
-            $dimension = $width;
+use Exception;
+use GuzzleHttp\Client;
 
-            //set quality
-            $quality = 50;
-            $qualityPng = 5;
+class ResizeImage
+{
+	/**
+	 * Method to resize images on the fly.
+	 *
+	 * @return An JSON content with link to the resized image
+	 */
+	public function resizeImageOnPostMethod()
+	{
+		// Let us get the dimensions
+		$this->width = isset($_POST['width'])
+		? (empty($_POST['width']) ? -1 : (int) filter_var($_POST['width'], FILTER_SANITIZE_NUMBER_INT)) : -1;
+		$this->height = isset($_POST['height'])
+		? (empty($_POST['height']) ? -1 : (int) filter_var($_POST['height'], FILTER_SANITIZE_NUMBER_INT))  : -1;
 
-            //download the image if validation passess
-            $fileName = $this->downloadImage($url);
+		if (! isset($_FILES['rimage'])) {
+			response('No image submitted for procession', 422);
+		}
 
-            //check size of image
-            if($this->checkImageSize($fileName)){
-                return $this->checkImageSize($fileName);
-            }
+		$uploadImage = $_FILES['rimage']['tmp_name'];
+		$filename = $this->generateName($_FILES['rimage']['name']);
+		
+		// We now check if we've already resized such an image
+		if ($this->imageHasBeenResized($filename)) {
+			response([
+				'message' => 'Successful',
+				'image_url' => Registry::get('config')['app_url'] . "uploads/$filename"
+			]);
+		}
 
-            //resized images folder creation
-            $directoryName = '../resized_images';
-     
-            //Check if the directory already exists.
-            if(!is_dir($directoryName)){
-                //Directory does not exist, so lets create it.
-                mkdir($directoryName, 0755);
-            }
+		if (! move_uploaded_file($uploadImage, $imageResolvedFile = $filename)) {
+			response('Cannot fetch image', 400);
+		}
 
-            //get properties of image
-            $sourceProperties = getimagesize("../temp/".$fileName);
-            $resizeFileName = time();
-            $uploadPath = "../resized_images/";
+		// We now have the image, let's head over to process it
+		$image = $this->processImage($imageResolvedFile);
+		response([
+			'message' => 'Successful',
+			'image_url' => Registry::get('config')['app_url'] . $image
+		]);
+	}
 
-            //get file extension
-            $fileExt = pathinfo("../temp/".$fileName, PATHINFO_EXTENSION);
+	/**
+	 * Method to resize images on the fly.
+	 *
+	 * @param  string  $dimensions  The dimensions provided by the user to be used for resizing.
+	 * @param  string  $uri  		The image resource to be resized.
+	 * @return An image content-type response with the resized image.
+	 */
+	public function resizeImageOnTheFly(string $dimensions, string $uri)
+	{
+		// The dimensions passed in will be of this form: `w_x,h_y`. So we will have to
+		// split it out in order to get our width and height.
+		$dimensions = explode(',', $dimensions);
 
-            //get image properties
-            $uploadImageType = $sourceProperties[2];
-            $sourceImageWidth = $sourceProperties[0];
-            $sourceImageHeight = $sourceProperties[1];
-            $ratio = $sourceImageWidth / $sourceImageHeight;
+		// Now we are left with an array of this nature: `['w_x', 'h_y']`. We further split it
+		// in order to get the `x` and `y` values.
+		foreach ($dimensions as $dimension) {
+			$resolvedDimension = explode('_', $dimension);
 
-            if ($ratio < 1) {
-                $new_Width = $dimension * $ratio;
-                $new_Height = $dimension;
-              } else {
-                $new_Width = $dimension * $ratio;
-                $new_Height = $dimension;
-              }
+			if ($resolvedDimension[0] === 'h') {
+				// We will simply extract the `height` value
+				$height = $resolvedDimension[1];
+			}
 
-            //resize image according to image format
-            switch ($uploadImageType){
-                case IMAGETYPE_JPEG:
-                    $src = imagecreatefromstring(file_get_contents("../temp/".$fileName));
-                    $destination = imagecreatetruecolor($new_Width, $new_Height);
-                    imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $sourceImageWidth, $sourceImageHeight);
-                    imagejpeg($destination, $uploadPath  . $fileName, $quality);
-                    break;
-                case IMAGETYPE_GIF:
-                    $src = imagecreatefromstring(file_get_contents("../temp/".$fileName));
-                    $destination = imagecreatetruecolor($new_Width, $new_Height);
-                    imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $sourceImageWidth, $sourceImageHeight);
-                    imagegif($destination, $uploadPath  . $fileName, $quality);
-                    break;
-                case IMAGETYPE_PNG:
-                    $src = imagecreatefromstring(file_get_contents("../temp/".$fileName));
-                    $destination = imagecreatetruecolor($new_Width, $new_Height);
-                    imagecopyresampled($destination, $src, 0, 0, 0, 0, $new_Width, $new_Height, $sourceImageWidth, $sourceImageHeight);
-                    imagepng($destination, $uploadPath  . $fileName, $qualityPng);
-                    break;
-                default:
-                    http_response_code(422);
-                    return json_encode(
-                        array(
-                            "message" => "Invalid image. Please check URL"
-                        )
-                    );
-                    die();
-                    
-            }
-            //save resized file
-            move_uploaded_file(@$file, $uploadPath. $resizeFileName. ".". $fileExt);
+			if ($resolvedDimension[0] === 'w') {
+				// We will simply extract the `width` value
+				$width = $resolvedDimension[1];
+			}
+		}
 
-            //construct path of resized file to generate url
-            $relative_path = $uploadPath . $fileName;
+		// We do not require the user to pass all dimensions (height & width).
+		// The user may choose to pass only the width or height value
+		// in order to maintain and preserve aspect ratio. So let's check for either
+		// a missing height or width. `-1` stands for auto scale.
+		$this->height = isset($height) ? $height : -1;
+		$this->width  = isset($width) ? $width : -1;
+		$this->uri    = $uri;
 
-            //delete file in temp folder after resizing
-            unlink("../temp/".$fileName);
+		// Let us now curl or guzzle the image using the passed in URL
+		$imageResolvedFile = $this->getImageDataFromURL($this->generateName($uri));
+		if (is_array($imageResolvedFile)) {
+			// This is a cache return
+			$binaryData = file_get_contents($imageResolvedFile[0]);
+			response(
+				$binaryData,
+				['headers' => ['Content-Type: ' . mime_content_type($imageResolvedFile[0])]],
+				false
+			);
+		}
 
-            $path = "http://" .$_SERVER['SERVER_NAME'] ."/resized_images/" .$fileName;
+		// We now have the image, let's head over to process it
+		$image = $this->processImage($imageResolvedFile);
+		$binaryData = file_get_contents($image);
+		response(
+			$binaryData,
+			['headers' => 'Content-Type: ' . mime_content_type($image)],
+			false
+		);
+	}
 
-            //return JSON response
-            return json_encode(
-                array(
-                    "filename" => $fileName,
-                    "message" => "Successful",
-                    "image_url" => $path,
-                    "file_size" => filesize($relative_path)/1000 ."kb",
-                    "image_format" => $fileExt,
-                    "initial_height" => $sourceImageHeight."px",
-                    "initial_width" => $sourceImageWidth."px",
-                    "resized_height" => $new_Height."px",
-                    "resized_width" => $new_Width."px",
-                )
-            );           
-        }
+	/**
+	 * Save image to local storage.
+	 *
+	 * @param  resource  $image
+	 * @param  string    $filename
+	 * @param  int       $mime
+	 * @return string
+	 */
+	protected function saveImage($image, string $filename, int $mime): string
+	{
+		if (! is_dir('uploads')) {
+			mkdir('uploads');
+		}
 
+		switch ($mime) {
+			case IMAGETYPE_JPEG:
+				imagejpeg($image, "uploads/$filename");
+				break;
+			case IMAGETYPE_GIF:
+				imagegif($image, "uploads/$filename");
+				break;
+			case IMAGETYPE_WEBP:
+				imagewebp($image, "uploads/$filename");
+				break;
+			case IMAGETYPE_BMP:
+				imagebmp($image, "uploads/$filename");
+				break;
+			case IMAGETYPE_WBMP:
+				imagewbmp($image, "uploads/$filename");
+				break;
+			case IMAGETYPE_XBM:
+				imagexbm($image, "uploads/$filename");
+				break;
+			case IMAGETYPE_PNG:
+			case IMAGETYPE_ICO:
+			default:
+				// Let us preserve transparency
+				imagealphablending($image, false);
+				imagesavealpha($image, true);
+				imagepng($image, "uploads/$filename");
+				break;
+		}
 
-    }
-    
-    protected function downloadImage($url){
-        $directoryName = '../temp';
- 
-        //Check if the directory already exists.
-        if(!is_dir($directoryName)){
-            //Directory does not exist, so lets create it.
-            mkdir($directoryName, 0755);
-        }
+		return "uploads/$filename";
+	}
 
-        //get details of image from url
-        $pathinfo = pathinfo($url); 
+	/**
+	 * This method gets an image file and processes (resize) it.
+	 *
+	 * @param  string  $file  The image file to be processed.
+	 * @return mixed
+	 */
+	protected function processImage(string $file)
+	{
+		// We will use Fileinfo to determine if it is actually an image file. Using
+		// getimagesize() for such purpose is discouraged. Legacy versions may use `exif`
+		// or even getimagesize().
+		try {
+				// Here we are flagging for the mime type check
+				$finfo = finfo_open(FILEINFO_MIME_TYPE);
+				if(! strstr(finfo_file($finfo, $file), 'image')) {
+					// Whoops! This is not a valid image file.
+					// Let us remove the resolved file.
+					unlink($file);
+					response('Invalid image', 415);
+				}
+			} catch (Exception $e) {
+				// App::get('logger')->log($e);
+				unlink($file);
+				response('Invalid image', 415);
+			}
 
-        //get filename and extension
-        $filename = time();
-        $ext = $pathinfo['extension'];
+		list($originalWidth, $originalHeight, $mime) = getimagesize($file);
 
-        //new filename
-        $newFilename = $pathinfo["filename"] ."_".$filename ."." .$ext;
+		$im = imagecreatefromstring(file_get_contents($file));
+		$resizeImage = imagescale($im, (int)$this->width, (int)$this->height);
+		// $filename = explode('/', $file);
+		$filename = $file;
 
-        //get image from url
-        $img_content = file_get_contents($url);
+		// Let's now save the image
+		$resizeImage = $this->saveImage($resizeImage, $filename, $mime);
 
-        //write downloaded file into output file
-        $new_img = fopen("../temp/".$newFilename, "w");      
-        $scrape = fwrite($new_img, $img_content);    
+		// We then free up memory
+		imagedestroy($im);
+		unlink($file);
 
-        if($scrape == true){
-            return $newFilename;
-        }
-    }
+		// We now return the resized image path
+		return $resizeImage;
+	}
 
+	/**
+	 * This method retrieves/resolves the image URI.
+	 *
+	 * @param  string  $generatedName  The generated name for the image.
+	 * @return mixed
+	 */
+	protected function getImageDataFromURL(string $generatedName)
+	{
+		if ($this->imageHasBeenResized($generatedName)) {
+			return ["uploads/$generatedName"];
+		}
 
-    protected function resizeImage($resourceType, $image_width, $image_height, $resizeWidth, $resizeHeight){
-        //resize image and return image layer
-        $imageLayer = imagecreatetruecolor($resizeWidth, $resizeHeight);
-        imagecopyresampled($imageLayer,$resourceType,0,0,0,0,$resizeWidth,$resizeHeight,$image_height,$image_width);
-        return $imageLayer;
+		// Making use of GuzzleHttp, we will now retrieve the image from the URL
+		try {
+				$resource = (new Client())->get($this->uri);
+			} catch (Exception $e) {
+				response('Cannot fetch image', 400);
+			}
 
-    }
+		if ($resource->getStatusCode() === 200) {
+			$maxFileSize = Registry::get('config')['max_filesize'];
+			// We don't want to process more than a set maximum filesize. Default is 5MB
+			if ($resource->getHeader('Content-Length')[0] > $maxFileSize) {
+				response('Maximum filesize '.formatBytes($maxFileSize).' exceeded', 413);
+			}
 
-    protected function checkDimensions($width){
-        if ($width <= 10) {
-            http_response_code(422);
-            return json_encode(
-                array("message" => "Image width is below limit")
-            );
-            die();
-        }
-    }
+			// We get the image contents which will be in a binary form
+			$image = $resource->getBody()->getContents();
 
-    private function checkValidImage($url){
-        if($url == ""){
-            http_response_code(400);
-            return json_encode(
-                array(
-                    "message" => "No image specified"
-                )
-            );
-            die();          
-        }
-        $extension = strtolower(substr($url, -3));
-        if($extension == "jpg" OR $extension == "png" OR $extension == "gif" OR $extension == "jpeg"){
-            return "Valid";
-        }
-        else{
-            http_response_code(422);
-            return json_encode(
-                array(
-                    "message" => "Invalid image. Please check URL"
-                )
-            );
-            die();
-        }
-/**
-        if (exif_imagetype($url) != IMAGETYPE_GIF) {
-            return json_encode(
-                array("message" => "Invalid")
-            ); 
-        }
-        elseif(exif_imagetype($url) != IMAGETYPE_JPEG) {
-            return json_encode(
-                array("message" => "Invalid image")
-            ); 
-        }
-        elseif(exif_imagetype($url) != IMAGETYPE_PNG) {
-            return json_encode(
-                array("message" => "Invalid image")
-            ); 
-        }
-        **/
-    }
+			$handle = fopen($generatedName, 'w');
+			fwrite($handle, $image);
+			fclose($handle);
 
-    protected function checkImageSize($image){
-        $relative_path = '../temp/'.$image;
+			return $generatedName;
+		}
 
-        if(filesize($relative_path) > 100000000){
-            //delete file in temp folder after resizing
-            unlink($relative_path);
+		response('Cannot fetch image', 400);
+	}
 
-            
-            http_response_code(400);
-            return json_encode(
-                array(
-                    "message" => "File size exceeds set limit of 100MB"
-                )
-            );
-            die();
-        }
-    }
+	/**
+	 * This method determines if an image has previously been resized.
+	 *
+	 * @param  string  $fileName  The file name to be checked.
+	 * @return string
+	 */
+	protected function imageHasBeenResized(string $fileName): bool
+	{
+		if (! is_dir('uploads')) {
+			mkdir('uploads', 0755);
+		}
 
+		if (file_exists("uploads/$fileName")) {
+			return true;
+		}
 
+		return false;
+	}
 
+	/**
+	 * This method generates a name for the image based on the name of
+	 * the file or the URI and its dimensions. It is mostly used as a cache mechanism
+	 * to prevent us from downloading and resizing the same image.
+	 *
+	 * @param  string  $data  The data from which the name will be generated from.
+	 * @return string
+	 */
+	protected function generateName(string $data): string
+	{
+		$striPos = strpos($data, '://');
+
+		if (! $striPos) {
+			return strtok($this->width . 'x' . $this->height . $data, '?');
+		}
+
+		return strtok(
+			$this->width . 'x' . $this->height . str_replace('/', '-', ltrim(strstr($data, '://'), '://')),
+			'?'
+		);
+	}
 }
