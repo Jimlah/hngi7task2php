@@ -37,17 +37,29 @@ class ImageResizer{
                 case IMAGETYPE_JPEG:
                     $resourceType = imagecreatefromjpeg("original_images/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
+<<<<<<< HEAD
                     imagejpeg($imageLayer, $uploadPath .$fileName);
+=======
+                    imagejpeg($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+>>>>>>> 7608ba3fc5282e599d810642e535585f1e563222
                     break;
                 case IMAGETYPE_GIF:
                     $resourceType = imagecreatefromgif("original_images/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
+<<<<<<< HEAD
                     imagegif($imageLayer, $uploadPath .$fileName);
+=======
+                    imagegif($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+>>>>>>> 7608ba3fc5282e599d810642e535585f1e563222
                     break;
                 case IMAGETYPE_PNG:
                     $resourceType = imagecreatefrompng("original_images/".$fileName);
                     $imageLayer = $this->resizeImage($resourceType, $sourceImageWidth, $sourceImageHeight, $width, $height);
+<<<<<<< HEAD
                     imagepng($imageLayer, $uploadPath .$fileName);
+=======
+                    imagepng($imageLayer, $uploadPath."thump_".$resizeFileName.".".$fileExt);
+>>>>>>> 7608ba3fc5282e599d810642e535585f1e563222
                     break;
                 default:
                     $imageProcess = 0;
@@ -58,13 +70,22 @@ class ImageResizer{
             move_uploaded_file(@$file, $uploadPath. $resizeFileName. ".". $fileExt);
 
             //construct path of resized file to generate url
+<<<<<<< HEAD
             $relative_path = $uploadPath . $fileName;
 
             $path = "http://" .$_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
+=======
+            $image_name = "thump_".$resizeFileName.".".$fileExt;
+
+            $relative_path = $uploadPath . $image_name;
+
+            $path = $_SERVER['SERVER_NAME'] ."/src/api/" .$relative_path;
+>>>>>>> 7608ba3fc5282e599d810642e535585f1e563222
 
             //return JSON response
             return json_encode(
                 array(
+<<<<<<< HEAD
                     "filename" => $fileName,
                     "message" => "Successful",
                     "image_url" => $path,
@@ -74,6 +95,10 @@ class ImageResizer{
                     "initial_width" => $sourceImageWidth."px",
                     "resized_height" => $height."px",
                     "resized_width" => $width."px",
+=======
+                    "message" => "Successful",
+                    "image_url" => $path
+>>>>>>> 7608ba3fc5282e599d810642e535585f1e563222
                 )
             );           
         }
